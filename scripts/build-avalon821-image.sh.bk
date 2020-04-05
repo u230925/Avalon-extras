@@ -29,7 +29,7 @@ SCRIPT_VERSION=20200328
 [ -z "${PATCH_REPO}" ] && PATCH_REPO=u230925
 
 # OpenWrt repo
-OWREPO_PATH="u230925/openwrt-archive"
+OWREPO_PATH="Canaan-Creative/openwrt-archive"
 avalon8_owrepo="git://github.com/"${OWREPO_PATH}".git"
 
 # OpenWrt feeds, features: NULL(Default), NiceHash, DHCP, bitcoind
@@ -87,6 +87,39 @@ prepare_config() {
     fi
 
     eval OPENWRT_CONFIG=\${"`echo ${AVA_TARGET_BOARD//-/_}`"_brdcfg[1]} && cp ./feeds/cgminer/cgminer/data/${OPENWRT_CONFIG} .config
+}
+
+prepare_patch() {
+    cd ${OPENWRT_DIR}
+
+    if [ "${AVA_TARGET_BOARD}" == "zctrl" ]; then
+	# Patch U-Boot
+        wget https://raw.githubusercontent.com/${PATCH_REPO}/Avalon-extras/master/zctrl-miscs/patches/u-boot/Makefile -O ./package/boot/uboot-zynq/Makefile
+        wget https://raw.githubusercontent.com/${PATCH_REPO}/Avalon-extras/master/zctrl-miscs/patches/u-boot/001-use-dtc-in-kernel.patch -O ./package/boot/uboot-zynq/patches/001-use-dtc-in-kernel.patch
+        wget https://raw.githubusercontent.com/${PATCH_REPO}/Avalon-extras/master/zctrl-miscs/patches/u-boot/030-add-dts-for-zctrl.patch -O ./package/boot/uboot-zynq/patches/030-add-dts-for-zctrl.patch
+        wget https://raw.githubusercontent.com/${PATCH_REPO}/Avalon-extras/master/zctrl-miscs/patches/u-boot/031-update-ddr-for-zctrl.patch -O ./package/boot/uboot-zynq/patches/031-update-ddr-for-zctrl.patch
+        wget https://raw.githubusercontent.com/${PATCH_REPO}/Avalon-extras/master/zctrl-miscs/patches/u-boot/032-add-defconfig-for-zctrl.patch -O ./package/boot/uboot-zynq/patches/032-add-defconfig-for-zctrl.patch
+
+	# Patch Linux
+        wget https://raw.githubusercontent.com/${PATCH_REPO}/Avalon-extras/master/zctrl-miscs/patches/linux/zynq/image/Makefile -O ./target/linux/zynq/image/Makefile
+        wget https://raw.githubusercontent.com/${PATCH_REPO}/Avalon-extras/master/zctrl-miscs/patches/linux/zynq/patches/120-add-dts-for-zctrl.patch -O ./target/linux/zynq/patches/120-add-dts-for-zctrl.patch
+        wget https://raw.githubusercontent.com/${PATCH_REPO}/Avalon-extras/master/zctrl-miscs/patches/linux/zynq/profiles/zctrl.mk -O ./target/linux/zynq/profiles/zctrl.mk
+    fi
+
+    if [ "${AVA_TARGET_BOARD}" == "xc7z100" ]; then
+	# Patch U-Boot
+        wget https://raw.githubusercontent.com/${PATCH_REPO}/Avalon-extras/master/7z100-miscs/patches/u-boot/Makefile -O ./package/boot/uboot-zynq/Makefile
+        wget https://raw.githubusercontent.com/${PATCH_REPO}/Avalon-extras/master/7z100-miscs/patches/u-boot/001-use-dtc-in-kernel.patch -O ./package/boot/uboot-zynq/patches/001-use-dtc-in-kernel.patch
+        wget https://raw.githubusercontent.com/${PATCH_REPO}/Avalon-extras/master/7z100-miscs/patches/u-boot/040-add-dts-for-7z100.patch -O ./package/boot/uboot-zynq/patches/040-add-dts-for-7z100.patch
+        wget https://raw.githubusercontent.com/${PATCH_REPO}/Avalon-extras/master/7z100-miscs/patches/u-boot/041-update-init-cfg-for-7z100.patch -O ./package/boot/uboot-zynq/patches/041-update-init-cfg-for-7z100.patch
+        wget https://raw.githubusercontent.com/${PATCH_REPO}/Avalon-extras/master/7z100-miscs/patches/u-boot/042-add-defconfig-for-7z100.patch -O ./package/boot/uboot-zynq/patches/042-add-defconfig-for-7z100.patch
+
+	# Patch Linux
+        wget https://raw.githubusercontent.com/${PATCH_REPO}/Avalon-extras/master/7z100-miscs/patches/linux/zynq/image/Makefile -O ./target/linux/zynq/image/Makefile
+        wget https://raw.githubusercontent.com/${PATCH_REPO}/Avalon-extras/master/7z100-miscs/patches/linux/zynq/patches/121-add-dts-for-7z100.patch -O ./target/linux/zynq/patches/121-add-dts-for-7z100.patch
+        wget https://raw.githubusercontent.com/${PATCH_REPO}/Avalon-extras/master/7z100-miscs/patches/linux/zynq/profiles/7z100.mk -O ./target/linux/zynq/profiles/7z100.mk
+    fi
+
 }
 
 prepare_feeds() {
@@ -216,7 +249,7 @@ do
             exit
             ;;
         --build)
-            prepare_source && prepare_feeds && prepare_config && prepare_version && build_image && do_release
+            prepare_source && prepare_feeds && prepare_patch && prepare_config && prepare_version && build_image && do_release
             ;;
         --cgminer)
             prepare_source && prepare_feeds && prepare_config && prepare_version && build_cgminer
